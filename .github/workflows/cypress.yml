@@ -1,0 +1,43 @@
+name: Cypress
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+  schedule:
+    - cron: '0 9 * * *' # Runs daily at 09:00 UTC
+  workflow_dispatch:     # Enables manual runs from the GitHub Actions tab
+
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      #- name: Run Cypress (headless)
+      #  run: npm run cy:run
+
+      - name: Run Cypress with recording
+        run: npx cypress run --record --key ${{ secrets.CYPRESS_RECORD_KEY }}
+
+      # Save screenshots/videos if a test fails
+      - name: Upload Cypress artifacts
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cypress-artifacts
+          path: |
+            cypress/screenshots
+            cypress/videos
+            if-no-files-found: ignore
