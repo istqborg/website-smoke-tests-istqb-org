@@ -1,6 +1,7 @@
 const pdfParse = require('pdf-parse');
 
 module.exports = {
+  projectId: "i6tyqa",
   e2e: {
     baseUrl: 'https://istqb.org',
     setupNodeEvents(on, config) {
