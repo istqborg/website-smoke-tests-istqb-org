@@ -5,10 +5,8 @@ on:
     branches: [ main ]
   pull_request:
   schedule:
-    # Weekdays (Mon–Fri) at 10:00, 15:00, 20:00 UTC
-    - cron: '0 10,15,20 * * 1-5'
-    # Weekends (Sat–Sun) at 12:00 UTC
-    - cron: '0 12 * * 6,0'
+    # Everyday at 8:00 AM
+    - cron: '0 8 * * *'
   workflow_dispatch:     # Enables manual runs from the GitHub Actions tab
 
 jobs:
