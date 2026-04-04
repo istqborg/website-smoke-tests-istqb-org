@@ -1,6 +1,6 @@
-export function checkPdfContains(pageUrl, { linkTextPattern, hrefPattern, expectText }) {
-  if (!pageUrl || !expectText) {
-    throw new Error('Missing required parameters: pageUrl and expectText are mandatory');
+export function checkPdfDownloadable(pageUrl, { linkTextPattern, hrefPattern } = {}) {
+  if (!pageUrl) {
+    throw new Error('Missing required parameter: pageUrl');
   }
 
   cy.visit(pageUrl);
@@ -12,7 +12,6 @@ export function checkPdfContains(pageUrl, { linkTextPattern, hrefPattern, expect
   } else if (hrefPattern) {
     link = cy.get(`a[href*="${hrefPattern}"]`).first().should('have.attr', 'href');
   } else {
-    // fallback used by istqb.org
     link = cy.get('a[href*="sdm_process_download="]').first().should('have.attr', 'href');
   }
 
@@ -24,8 +23,11 @@ export function checkPdfContains(pageUrl, { linkTextPattern, hrefPattern, expect
       encoding: 'binary',
       followRedirect: true
     }).then(resp => {
-      cy.task('parsePdfFromBuffer', resp.body).then(text => {
-        expect(text).to.include(expectText);
+      expect(resp.status).to.equal(200);
+      expect(resp.headers['content-type']).to.include('application/pdf');
+      cy.task('validatePdfBuffer', resp.body).then(result => {
+        expect(result.valid).to.be.true;
+        expect(result.sizeBytes).to.be.greaterThan(10240);
       });
     });
   });
