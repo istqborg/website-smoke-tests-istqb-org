@@ -1,7 +1,7 @@
 module.exports = {
   projectId: "ed878t",
   e2e: {
-    baseUrl: 'https://istqb.org',
+    baseUrl: 'http://ec2-3-71-109-173.eu-central-1.compute.amazonaws.com',
     setupNodeEvents(on, config) {
       on('task', {
         validatePdfBuffer(pdfBuffer) {
