@@ -20,6 +20,10 @@ module.exports = {
             throw new Error(`PDF suspiciously small: ${buf.length} bytes`);
           }
           return { valid: true, sizeBytes: buf.length };
+        },
+        log(message) {
+          console.log(message);
+          return null;
         }
       });
 

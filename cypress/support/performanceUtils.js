@@ -1,10 +1,10 @@
 /**
  * Measure page load performance metrics
  * @param {string} label - Label for the measurement
- * @returns {object} Performance metrics
+ * @returns {Cypress.Chainable} Chainable that resolves to performance metrics
  */
 export function measurePageLoad(label = 'Page Load') {
-  return cy.window().then((win) => {
+  cy.window().then((win) => {
     const perfData = win.performance.timing;
     const navigationStart = perfData.navigationStart;
     
@@ -26,23 +26,32 @@ export function measurePageLoad(label = 'Page Load') {
     cy.log(`DOM Content Loaded: ${metrics.domContentLoaded}ms`);
     cy.log(`Load Complete: ${metrics.loadComplete}ms`);
 
-    return metrics;
+    // Store in window for later retrieval
+    win.__performanceMetrics = win.__performanceMetrics || [];
+    win.__performanceMetrics.push(metrics);
   });
 }
 
 /**
  * Store performance metrics for comparison
+ * @param {string} environment - Environment name (staging/production)
+ * @param {object} metrics - Performance metrics object
  */
-const performanceData = {};
-
 export function recordPerformance(environment, metrics) {
-  if (!performanceData[environment]) {
-    performanceData[environment] = [];
-  }
-  performanceData[environment].push(metrics);
-  
-  // Write to file for later analysis
-  cy.writeFile(`cypress/results/performance-${environment}.json`, performanceData[environment]);
+  cy.window().then((win) => {
+    const allMetrics = win.__performanceMetrics || [];
+    
+    // Read existing data if available
+    cy.task('log', `Recording performance for ${environment}`).then(() => {
+      cy.readFile(`cypress/results/performance-${environment}.json`, { log: false }).then((existingData) => {
+        const updatedData = [...existingData, metrics];
+        cy.writeFile(`cypress/results/performance-${environment}.json`, updatedData);
+      }).catch(() => {
+        // File doesn't exist yet, create it
+        cy.writeFile(`cypress/results/performance-${environment}.json`, [metrics]);
+      });
+    });
+  });
 }
 
 /**

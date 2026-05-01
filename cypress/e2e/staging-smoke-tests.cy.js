@@ -15,7 +15,9 @@ describe('Staging Environment - istqb.org health check', () => {
 
   it('staging health check with performance measurement', () => {
     // Measure landing page load
-    measurePageLoad('Staging - Landing Page').then((metrics) => {
+    measurePageLoad('Staging - Landing Page');
+    cy.window().then((win) => {
+      const metrics = win.__performanceMetrics[win.__performanceMetrics.length - 1];
       recordPerformance(environment, { page: 'landing', ...metrics });
     });
 
@@ -28,7 +30,9 @@ describe('Staging Environment - istqb.org health check', () => {
     cy.url().should('include', '/certifications/');
     
     // Measure certifications page load
-    measurePageLoad('Staging - Certifications Page').then((metrics) => {
+    measurePageLoad('Staging - Certifications Page');
+    cy.window().then((win) => {
+      const metrics = win.__performanceMetrics[win.__performanceMetrics.length - 1];
       recordPerformance(environment, { page: 'certifications', ...metrics });
     });
 
@@ -40,7 +44,9 @@ describe('Staging Environment - istqb.org health check', () => {
     cy.url().should('include', '/certified-tester-foundation-level');
 
     // Measure CTFL details page load
-    measurePageLoad('Staging - CTFL Details Page').then((metrics) => {
+    measurePageLoad('Staging - CTFL Details Page');
+    cy.window().then((win) => {
+      const metrics = win.__performanceMetrics[win.__performanceMetrics.length - 1];
       recordPerformance(environment, { page: 'ctfl-details', ...metrics });
     });
 
