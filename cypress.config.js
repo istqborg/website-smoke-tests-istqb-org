@@ -3,6 +3,11 @@ module.exports = {
   e2e: {
     baseUrl: 'http://ec2-3-71-109-173.eu-central-1.compute.amazonaws.com',
     chromeWebSecurity: false,
+    env: {
+      // Define multiple base URLs for testing
+      stagingUrl: 'http://ec2-3-71-109-173.eu-central-1.compute.amazonaws.com',
+      productionUrl: 'https://istqb.org'
+    },
     setupNodeEvents(on, config) {
       on('task', {
         validatePdfBuffer(pdfBuffer) {
@@ -17,6 +22,15 @@ module.exports = {
           return { valid: true, sizeBytes: buf.length };
         }
       });
+
+      // Allow setting baseUrl via environment variable
+      if (config.env.testEnv === 'production') {
+        config.baseUrl = config.env.productionUrl;
+      } else if (config.env.testEnv === 'staging') {
+        config.baseUrl = config.env.stagingUrl;
+      }
+
+      return config;
     }
   }
 };

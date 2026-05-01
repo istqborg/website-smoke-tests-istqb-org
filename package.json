@@ -1,10 +1,18 @@
 {
-  "name": "untitled",
+  "name": "istqb-smoke-tests",
   "version": "1.0.0",
-  "description": "",
+  "description": "Cypress smoke tests for ISTQB.org with performance comparison between staging and production environments",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "npm run test:all",
+    "test:all": "npm run test:staging && npm run test:production && npm run test:compare",
+    "test:staging": "cypress run --spec 'cypress/e2e/staging-smoke-tests.cy.js' --env testEnv=staging",
+    "test:production": "cypress run --spec 'cypress/e2e/production-smoke-tests.cy.js' --env testEnv=production",
+    "test:compare": "cypress run --spec 'cypress/e2e/performance-comparison.cy.js'",
+    "test:original": "cypress run --spec 'cypress/e2e/istqb-org-smoke-tests.cy.js'",
+    "cy:open": "cypress open",
+    "cy:open:staging": "cypress open --env testEnv=staging",
+    "cy:open:production": "cypress open --env testEnv=production"
   },
   "private": true,
   "devDependencies": {
