@@ -9,6 +9,9 @@ module.exports = {
       productionUrl: 'https://istqb.org'
     },
     setupNodeEvents(on, config) {
+      const fs = require('fs');
+      const path = require('path');
+      
       on('task', {
         validatePdfBuffer(pdfBuffer) {
           const buf = Buffer.from(pdfBuffer, 'binary');
@@ -24,6 +27,13 @@ module.exports = {
         log(message) {
           console.log(message);
           return null;
+        },
+        fileExists(filePath) {
+          try {
+            return fs.existsSync(filePath);
+          } catch (e) {
+            return false;
+          }
         }
       });
 

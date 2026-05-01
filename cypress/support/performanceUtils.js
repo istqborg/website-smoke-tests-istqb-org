@@ -38,17 +38,19 @@ export function measurePageLoad(label = 'Page Load') {
  * @param {object} metrics - Performance metrics object
  */
 export function recordPerformance(environment, metrics) {
-  cy.task('log', `Recording performance for ${environment}`);
+  const filePath = `cypress/results/performance-${environment}.json`;
   
-  // Try to read existing file, if it fails, create new array
-  cy.readFile(`cypress/results/performance-${environment}.json`, { log: false, failOnStatusCode: false }).then((existingData) => {
-    // If file exists and has data, append to it
-    if (existingData && Array.isArray(existingData)) {
-      const updatedData = [...existingData, metrics];
-      cy.writeFile(`cypress/results/performance-${environment}.json`, updatedData);
+  cy.task('log', `Recording performance for ${environment}`);
+  cy.task('fileExists', filePath).then((exists) => {
+    if (exists) {
+      // File exists, read and append
+      cy.readFile(filePath, { log: false }).then((existingData) => {
+        const updatedData = Array.isArray(existingData) ? [...existingData, metrics] : [metrics];
+        cy.writeFile(filePath, updatedData);
+      });
     } else {
-      // File doesn't exist or is invalid, create new array
-      cy.writeFile(`cypress/results/performance-${environment}.json`, [metrics]);
+      // File doesn't exist, create new
+      cy.writeFile(filePath, [metrics]);
     }
   });
 }
