@@ -1,8 +1,17 @@
 module.exports = {
   projectId: "ed878t",
   e2e: {
-    baseUrl: 'https://istqb.org',
+    baseUrl: 'http://ec2-3-71-109-173.eu-central-1.compute.amazonaws.com',
+    chromeWebSecurity: false,
+    env: {
+      // Define multiple base URLs for testing
+      stagingUrl: 'http://ec2-3-71-109-173.eu-central-1.compute.amazonaws.com',
+      productionUrl: 'https://istqb.org'
+    },
     setupNodeEvents(on, config) {
+      const fs = require('fs');
+      const path = require('path');
+      
       on('task', {
         validatePdfBuffer(pdfBuffer) {
           const buf = Buffer.from(pdfBuffer, 'binary');
@@ -14,8 +23,28 @@ module.exports = {
             throw new Error(`PDF suspiciously small: ${buf.length} bytes`);
           }
           return { valid: true, sizeBytes: buf.length };
+        },
+        log(message) {
+          console.log(message);
+          return null;
+        },
+        fileExists(filePath) {
+          try {
+            return fs.existsSync(filePath);
+          } catch (e) {
+            return false;
+          }
         }
       });
+
+      // Allow setting baseUrl via environment variable
+      if (config.env.testEnv === 'production') {
+        config.baseUrl = config.env.productionUrl;
+      } else if (config.env.testEnv === 'staging') {
+        config.baseUrl = config.env.stagingUrl;
+      }
+
+      return config;
     }
   }
 };

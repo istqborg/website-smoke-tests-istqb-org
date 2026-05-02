@@ -26,6 +26,9 @@ Cypress.on('uncaught:exception', (err) => {
   // Network errors from 3rd-party widgets
   if (msg.includes('err_empty_response') || msg.includes('name_not_resolved')) return false;
 
+  // Google Analytics postMessage errors (cross-origin communication issues)
+  if (msg.includes('postmessage')) return false;
+
   // otherwise, fail as usual
   return true;
 });
