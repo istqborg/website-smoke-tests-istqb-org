@@ -111,7 +111,28 @@ The CI/CD pipeline runs automatically on:
 
 1. **staging-tests**: Runs tests against staging environment
 2. **production-tests**: Runs tests against production environment
-3. **performance-comparison**: Generates comparison report and posts to PR
+3. **performance-comparison**: Generates comparison report, posts to PR, and sends Slack notification
+
+### Slack Notifications
+
+The workflow sends performance test results to Slack with:
+- Test status (success/failure)
+- Repository and branch information
+- Link to workflow run and artifacts
+- Performance report availability
+
+**Setup:**
+1. Create a Slack Incoming Webhook:
+   - Go to https://api.slack.com/apps
+   - Create new app → "From scratch"
+   - Enable "Incoming Webhooks"
+   - Add webhook to your workspace
+   - Copy the webhook URL
+2. Add webhook URL to repository secrets:
+   - Go to repository Settings → Secrets and variables → Actions
+   - Create new secret: `SLACK_WEBHOOK_URL`
+   - Paste your webhook URL
+3. The workflow will automatically send notifications on every run
 
 ## Project Structure
 
