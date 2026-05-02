@@ -152,7 +152,7 @@ jobs:
             }
 
       - name: Send Slack Notification
-        if: always() && secrets.SLACK_WEBHOOK_URL != ''
+        if: always()
         continue-on-error: true
         uses: slackapi/slack-github-action@v2.0.0
         with:
