@@ -151,6 +151,20 @@ jobs:
               console.log('Performance report is available in artifacts');
             }
 
+      - name: Prepare Slack Message
+        if: always()
+        continue-on-error: true
+        id: slack-message
+        run: |
+          if [ -f "cypress/results/PERFORMANCE_REPORT.md" ]; then
+            # Read the performance report and escape for JSON
+            REPORT=$(cat cypress/results/PERFORMANCE_REPORT.md | sed 's/"/\\"/g' | sed ':a;N;$!ba;s/\n/\\n/g')
+            echo "report_content=$REPORT" >> $GITHUB_OUTPUT
+            echo "has_report=true" >> $GITHUB_OUTPUT
+          else
+            echo "has_report=false" >> $GITHUB_OUTPUT
+          fi
+
       - name: Send Slack Notification
         if: always()
         continue-on-error: true
@@ -160,7 +174,7 @@ jobs:
           webhook: ${{ secrets.SLACK_WEBHOOK_URL }}
           payload: |
             {
-              "text": "🚀 Performance Comparison Report",
+              "text": "🚀 Performance Comparison Report - ${{ github.repository }}",
               "blocks": [
                 {
                   "type": "header",
@@ -194,7 +208,7 @@ jobs:
                   "type": "section",
                   "text": {
                     "type": "mrkdwn",
-                    "text": "📈 *Performance Report Available*\nView detailed comparison in workflow artifacts"
+                    "text": "${{ steps.slack-message.outputs.has_report == 'true' && steps.slack-message.outputs.report_content || '📈 *Performance Report*\nReport generation in progress or unavailable.' }}"
                   }
                 },
                 {
