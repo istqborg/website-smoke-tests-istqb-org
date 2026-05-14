@@ -1,11 +1,11 @@
 module.exports = {
   projectId: "ed878t",
   e2e: {
-    baseUrl: 'http://ec2-3-71-109-173.eu-central-1.compute.amazonaws.com',
+    baseUrl: 'https://istqb.org',
     chromeWebSecurity: false,
     env: {
       // Define multiple base URLs for testing
-      stagingUrl: 'http://ec2-3-71-109-173.eu-central-1.compute.amazonaws.com',
+      stagingUrl: 'http://54.246.123.236/',
       productionUrl: 'https://istqb.org'
     },
     setupNodeEvents(on, config) {
