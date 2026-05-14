@@ -3,6 +3,7 @@ module.exports = {
   e2e: {
     baseUrl: 'https://istqb.org',
     chromeWebSecurity: false,
+    pageLoadTimeout: 40000,
     env: {
       // Define multiple base URLs for testing
       stagingUrl: 'http://54.246.123.236/',
