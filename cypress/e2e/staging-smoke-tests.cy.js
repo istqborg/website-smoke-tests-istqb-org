@@ -69,4 +69,3 @@ describe('Staging Environment - istqb.org health check', () => {
   });
 });
 
-// Made with Bob

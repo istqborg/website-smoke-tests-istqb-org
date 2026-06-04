@@ -62,4 +62,3 @@ describe('Production Environment - istqb.org health check', () => {
   });
 });
 
-// Made with Bob

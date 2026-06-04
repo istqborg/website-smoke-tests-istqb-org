@@ -58,29 +58,29 @@ describe('Performance Comparison Report', () => {
 
             // Write comparison report
             cy.writeFile('cypress/results/performance-comparison.json', report);
+
+            // Log results to console
+            cy.log('**Performance Comparison Report**');
+            Object.keys(comparison).forEach(page => {
+              const data = comparison[page];
+              cy.log(`**${page.toUpperCase()}**`);
+              cy.log(`Staging: ${data.staging.avgTotalTime}ms (${data.staging.sampleSize} samples)`);
+              cy.log(`Production: ${data.production.avgTotalTime}ms (${data.production.sampleSize} samples)`);
+              cy.log(`Difference: ${data.difference.totalTime}ms (${data.difference.percentage}%)`);
+            });
+
+            // Generate markdown report
+            const markdown = generateMarkdownReport(report);
+            cy.writeFile('cypress/results/PERFORMANCE_REPORT.md', markdown);
+
+            // Generate Slack payload with blocks
+            const slackBlocks = generateSlackBlocks(report);
+            const slackPayload = {
+              text: `🚀 Performance Comparison Report - ISTQB`,
+              blocks: slackBlocks
+            };
+            cy.writeFile('cypress/results/SLACK_BLOCKS.json', slackPayload);
           });
-
-          // Log results to console
-          cy.log('**Performance Comparison Report**');
-          Object.keys(comparison).forEach(page => {
-            const data = comparison[page];
-            cy.log(`**${page.toUpperCase()}**`);
-            cy.log(`Staging: ${data.staging.avgTotalTime}ms (${data.staging.sampleSize} samples)`);
-            cy.log(`Production: ${data.production.avgTotalTime}ms (${data.production.sampleSize} samples)`);
-            cy.log(`Difference: ${data.difference.totalTime}ms (${data.difference.percentage}%)`);
-          });
-
-          // Generate markdown report
-          const markdown = generateMarkdownReport(report);
-          cy.writeFile('cypress/results/PERFORMANCE_REPORT.md', markdown);
-
-          // Generate Slack payload with blocks
-          const slackBlocks = generateSlackBlocks(report);
-          const slackPayload = {
-            text: `🚀 Performance Comparison Report - ISTQB`,
-            blocks: slackBlocks
-          };
-          cy.writeFile('cypress/results/SLACK_BLOCKS.json', slackPayload);
         });
       });
     });
@@ -232,4 +232,3 @@ function generateSlackBlocks(report) {
   return blocks;
 }
 
-// Made with Bob
