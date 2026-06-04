@@ -41,7 +41,11 @@ describe('Staging Environment - istqb.org health check', () => {
 
     // Open the CTFL details page
     cy.contains('a', 'Read more').first().then(($link) => {
-      const url = $link.attr('href');
+      let url = $link.attr('href');
+      // Convert production URLs to staging equivalents
+      if (url.includes('istqb.org')) {
+        url = url.replace('https://istqb.org', Cypress.env('stagingUrl')).replace(/\/$/, '');
+      }
       cy.visit(url);
     });
     cy.url().should('include', '/certified-tester-foundation-level-ctfl-v4-0');
