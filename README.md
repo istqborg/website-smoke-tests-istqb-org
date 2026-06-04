@@ -232,4 +232,4 @@ The CI pipeline will automatically run tests and post performance comparison res
 
 ## License
 
-Private project - All rights reserved
+Private project - All rights reserved.
