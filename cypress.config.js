@@ -4,6 +4,7 @@ module.exports = {
     baseUrl: 'https://istqb.org',
     chromeWebSecurity: false,
     pageLoadTimeout: 40000,
+    allowCypressEnv: false,
     env: {
       // Define multiple base URLs for testing
       stagingUrl: 'http://54.246.123.236/',

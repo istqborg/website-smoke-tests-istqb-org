@@ -38,8 +38,8 @@ export function measurePageLoad(label = 'Page Load') {
  * @param {object} metrics - Performance metrics object
  */
 export function recordPerformance(environment, metrics) {
-  // Get run number from CI_RUN_ID (e.g., "26951887595-staging-1" -> 1)
-  const runId = Cypress.env('CI_RUN_ID') || 'local';
+  // Get run number from CI_RUN_ID env variable (e.g., "26951887595-staging-1" -> 1)
+  const runId = process.env.CI_RUN_ID || 'local';
   const runNumber = runId.split('-').pop();
   const filePath = `cypress/results/performance-${environment}-run${runNumber}.json`;
   const historyPath = `.performance-history/performance-${environment}.json`;
@@ -65,7 +65,7 @@ export function recordPerformance(environment, metrics) {
         const enhancedMetrics = {
           ...metrics,
           timestamp: new Date().toISOString(),
-          runId: Cypress.env('CI_RUN_ID') || 'local'
+          runId: process.env.CI_RUN_ID || 'local'
         };
         const updatedHistory = Array.isArray(historyData) ? [...historyData, enhancedMetrics] : [enhancedMetrics];
         cy.writeFile(historyPath, updatedHistory);
@@ -74,7 +74,7 @@ export function recordPerformance(environment, metrics) {
       const enhancedMetrics = {
         ...metrics,
         timestamp: new Date().toISOString(),
-        runId: Cypress.env('CI_RUN_ID') || 'local'
+        runId: process.env.CI_RUN_ID || 'local'
       };
       cy.writeFile(historyPath, [enhancedMetrics]);
     }
