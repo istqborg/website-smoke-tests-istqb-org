@@ -17,6 +17,10 @@ describe('Performance Comparison Report', () => {
           pages.forEach(page => {
             const stagingMetrics = allStagingData.filter(m => m.page === page);
             const productionMetrics = allProductionData.filter(m => m.page === page);
+            const stagingNow = stagingData.filter(m => m.page === page);
+            const productionNow = productionData.filter(m => m.page === page);
+            const stagingHist = (stagingHistory || []).filter(m => m.page === page);
+            const productionHist = (productionHistory || []).filter(m => m.page === page);
 
             if (stagingMetrics.length > 0 && productionMetrics.length > 0) {
               const stagingAvg = average(stagingMetrics.map(m => m.totalTime));
@@ -24,18 +28,44 @@ describe('Performance Comparison Report', () => {
               const difference = productionAvg - stagingAvg;
               const percentDiff = ((difference / stagingAvg) * 100).toFixed(2);
 
+              const avgMetrics = (arr, key) => arr.length > 0 ? Math.round(average(arr.map(m => m[key]))) : null;
+
               comparison[page] = {
                 staging: {
                   avgTotalTime: Math.round(stagingAvg),
-                  avgDomContentLoaded: Math.round(average(stagingMetrics.map(m => m.domContentLoaded))),
-                  avgLoadComplete: Math.round(average(stagingMetrics.map(m => m.loadComplete))),
-                  sampleSize: stagingMetrics.length
+                  avgDomContentLoaded: avgMetrics(stagingMetrics, 'domContentLoaded'),
+                  avgLoadComplete: avgMetrics(stagingMetrics, 'loadComplete'),
+                  sampleSize: stagingMetrics.length,
+                  now: {
+                    avgTotalTime: avgMetrics(stagingNow, 'totalTime'),
+                    avgDomContentLoaded: avgMetrics(stagingNow, 'domContentLoaded'),
+                    avgLoadComplete: avgMetrics(stagingNow, 'loadComplete'),
+                    sampleSize: stagingNow.length
+                  },
+                  historical: {
+                    avgTotalTime: avgMetrics(stagingHist, 'totalTime'),
+                    avgDomContentLoaded: avgMetrics(stagingHist, 'domContentLoaded'),
+                    avgLoadComplete: avgMetrics(stagingHist, 'loadComplete'),
+                    sampleSize: stagingHist.length
+                  }
                 },
                 production: {
                   avgTotalTime: Math.round(productionAvg),
-                  avgDomContentLoaded: Math.round(average(productionMetrics.map(m => m.domContentLoaded))),
-                  avgLoadComplete: Math.round(average(productionMetrics.map(m => m.loadComplete))),
-                  sampleSize: productionMetrics.length
+                  avgDomContentLoaded: avgMetrics(productionMetrics, 'domContentLoaded'),
+                  avgLoadComplete: avgMetrics(productionMetrics, 'loadComplete'),
+                  sampleSize: productionMetrics.length,
+                  now: {
+                    avgTotalTime: avgMetrics(productionNow, 'totalTime'),
+                    avgDomContentLoaded: avgMetrics(productionNow, 'domContentLoaded'),
+                    avgLoadComplete: avgMetrics(productionNow, 'loadComplete'),
+                    sampleSize: productionNow.length
+                  },
+                  historical: {
+                    avgTotalTime: avgMetrics(productionHist, 'totalTime'),
+                    avgDomContentLoaded: avgMetrics(productionHist, 'domContentLoaded'),
+                    avgLoadComplete: avgMetrics(productionHist, 'loadComplete'),
+                    sampleSize: productionHist.length
+                  }
                 },
                 difference: {
                   totalTime: Math.round(difference),
@@ -186,13 +216,19 @@ function generateSlackBlocks(report) {
     });
 
     // Performance metrics table
+    const fmt = (v) => v != null ? String(v) : 'n/a';
+    const sn = data.staging.now;
+    const sh = data.staging.historical;
+    const pn = data.production.now;
+    const ph = data.production.historical;
+
     let tableText = '```\n';
-    tableText += 'Metric                   Staging  Production  Difference\n';
-    tableText += '─────────────────────────────────────────────────────────\n';
-    tableText += `Total Load Time          ${String(data.staging.avgTotalTime).padEnd(7)} ${String(data.production.avgTotalTime).padEnd(10)} ${data.difference.totalTime}ms\n`;
-    tableText += `DOM Content Loaded       ${String(data.staging.avgDomContentLoaded).padEnd(7)} ${String(data.production.avgDomContentLoaded).padEnd(10)}\n`;
-    tableText += `Load Complete            ${String(data.staging.avgLoadComplete).padEnd(7)} ${String(data.production.avgLoadComplete).padEnd(10)}\n`;
-    tableText += `\nSample Size              ${data.staging.sampleSize} x          ${data.production.sampleSize} x\n`;
+    tableText += 'Metric              Stg(now)  Stg(hist)  Prod(now)  Prod(hist)  Diff\n';
+    tableText += '────────────────────────────────────────────────────────────────────\n';
+    tableText += `Total Load Time     ${fmt(sn.avgTotalTime).padEnd(9)} ${fmt(sh.avgTotalTime).padEnd(10)} ${fmt(pn.avgTotalTime).padEnd(10)} ${fmt(ph.avgTotalTime).padEnd(11)} ${data.difference.totalTime}ms\n`;
+    tableText += `DOM Content Loaded  ${fmt(sn.avgDomContentLoaded).padEnd(9)} ${fmt(sh.avgDomContentLoaded).padEnd(10)} ${fmt(pn.avgDomContentLoaded).padEnd(10)} ${fmt(ph.avgDomContentLoaded).padEnd(11)}\n`;
+    tableText += `Load Complete       ${fmt(sn.avgLoadComplete).padEnd(9)} ${fmt(sh.avgLoadComplete).padEnd(10)} ${fmt(pn.avgLoadComplete).padEnd(10)} ${fmt(ph.avgLoadComplete).padEnd(11)}\n`;
+    tableText += `\nSample Size         ${String(sn.sampleSize + ' x').padEnd(9)} ${String(sh.sampleSize + ' x').padEnd(10)} ${String(pn.sampleSize + ' x').padEnd(10)} ${String(ph.sampleSize + ' x').padEnd(11)}\n`;
     tableText += '```\n';
 
     // Performance verdict
