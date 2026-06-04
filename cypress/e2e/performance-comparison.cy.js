@@ -133,6 +133,40 @@ function generateSlackBlocks(report) {
     }
   });
 
+  // Report metadata
+  blocks.push({
+    type: 'section',
+    fields: [
+      {
+        type: 'mrkdwn',
+        text: `*Generated:*\n${new Date(report.timestamp).toLocaleString()}`
+      },
+      {
+        type: 'mrkdwn',
+        text: '*Status:* ✅ Complete'
+      }
+    ]
+  });
+
+  // URLs
+  blocks.push({
+    type: 'section',
+    fields: [
+      {
+        type: 'mrkdwn',
+        text: `*Staging URL:*\n${report.summary.stagingUrl}`
+      },
+      {
+        type: 'mrkdwn',
+        text: `*Production URL:*\n${report.summary.productionUrl}`
+      }
+    ]
+  });
+
+  blocks.push({
+    type: 'divider'
+  });
+
   // Generate section for each page
   Object.keys(report.comparison).forEach(page => {
     const data = report.comparison[page];
