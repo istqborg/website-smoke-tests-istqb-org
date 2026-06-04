@@ -46,17 +46,19 @@ describe('Performance Comparison Report', () => {
           });
 
           // Generate report
-          const report = {
-            timestamp: new Date().toISOString(),
-            summary: {
-              stagingUrl: Cypress.env('stagingUrl'),
-              productionUrl: Cypress.env('productionUrl')
-            },
-            comparison
-          };
+          cy.env(['stagingUrl', 'productionUrl']).then(({ stagingUrl, productionUrl }) => {
+            const report = {
+              timestamp: new Date().toISOString(),
+              summary: {
+                stagingUrl,
+                productionUrl
+              },
+              comparison
+            };
 
-          // Write comparison report
-          cy.writeFile('cypress/results/performance-comparison.json', report);
+            // Write comparison report
+            cy.writeFile('cypress/results/performance-comparison.json', report);
+          });
 
           // Log results to console
           cy.log('**Performance Comparison Report**');
