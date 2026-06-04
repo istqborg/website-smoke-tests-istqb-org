@@ -136,6 +136,35 @@ jobs:
           rm -f cypress/results/*/performance-*-run*.json
           echo "✅ Performance results consolidated"
 
+      - name: Append Current Run to Performance History
+        run: |
+          mkdir -p .performance-history
+          TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+          RUN_ID="${{ github.run_id }}"
+
+          for ENV in staging production; do
+            CURRENT="cypress/results/performance-${ENV}.json"
+            HISTORY=".performance-history/performance-${ENV}.json"
+
+            if [ ! -f "$CURRENT" ]; then
+              echo "⏭️  No current results for ${ENV}, skipping"
+              continue
+            fi
+
+            # Add timestamp and runId to each measurement
+            jq --arg ts "$TIMESTAMP" --arg rid "$RUN_ID" \
+              'map(. + {timestamp: $ts, runId: $rid})' "$CURRENT" > /tmp/current-enhanced.json
+
+            if [ -f "$HISTORY" ]; then
+              jq -s '.[0] + .[1]' "$HISTORY" /tmp/current-enhanced.json > /tmp/history-updated.json
+              mv /tmp/history-updated.json "$HISTORY"
+            else
+              cp /tmp/current-enhanced.json "$HISTORY"
+            fi
+
+            echo "✅ Appended $(jq length /tmp/current-enhanced.json) measurements to ${ENV} history"
+          done
+
       - name: Generate Performance Comparison
         run: npx cypress run --spec "cypress/e2e/performance-comparison.cy.js"
 

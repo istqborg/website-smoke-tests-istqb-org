@@ -4,3 +4,4 @@
 /cypress/videos/
 /cypress/results/
 /.DS_Store
+cypress/.DS_Store
