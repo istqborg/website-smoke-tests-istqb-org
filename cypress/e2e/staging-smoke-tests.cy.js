@@ -44,7 +44,7 @@ describe('Staging Environment - istqb.org health check', () => {
       let url = $link.attr('href');
       // Convert production URLs to staging equivalents
       if (url.includes('istqb.org')) {
-        url = url.replace('https://istqb.org', cy.env('stagingUrl')).replace(/\/$/, '');
+        url = url.replace('https://istqb.org', Cypress.env('stagingUrl')).replace(/\/$/, '');
       }
       cy.visit(url);
     });

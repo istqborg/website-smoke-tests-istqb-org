@@ -6,84 +6,79 @@ describe('Performance Comparison Report', () => {
         // Also read historical data if available
         cy.task('readHistoricalData', 'staging').then((stagingHistory) => {
           cy.task('readHistoricalData', 'production').then((productionHistory) => {
-          cy.env('stagingUrl').then((stagingUrl) => {
-            cy.env('productionUrl').then((productionUrl) => {
-              // Combine current run and historical data
-              const allStagingData = [...(stagingHistory || []), ...stagingData];
-              const allProductionData = [...(productionHistory || []), ...productionData];
+          // Combine current run and historical data
+          const allStagingData = [...(stagingHistory || []), ...stagingData];
+          const allProductionData = [...(productionHistory || []), ...productionData];
 
-              // Calculate averages for each page using all available data
-              const pages = ['landing', 'certifications', 'ctfl-details'];
-              const comparison = {};
+          // Calculate averages for each page using all available data
+          const pages = ['landing', 'certifications', 'ctfl-details'];
+          const comparison = {};
 
-              pages.forEach(page => {
-                const stagingMetrics = allStagingData.filter(m => m.page === page);
-                const productionMetrics = allProductionData.filter(m => m.page === page);
+          pages.forEach(page => {
+            const stagingMetrics = allStagingData.filter(m => m.page === page);
+            const productionMetrics = allProductionData.filter(m => m.page === page);
 
-                if (stagingMetrics.length > 0 && productionMetrics.length > 0) {
-                  const stagingAvg = average(stagingMetrics.map(m => m.totalTime));
-                  const productionAvg = average(productionMetrics.map(m => m.totalTime));
-                  const difference = productionAvg - stagingAvg;
-                  const percentDiff = ((difference / stagingAvg) * 100).toFixed(2);
+            if (stagingMetrics.length > 0 && productionMetrics.length > 0) {
+              const stagingAvg = average(stagingMetrics.map(m => m.totalTime));
+              const productionAvg = average(productionMetrics.map(m => m.totalTime));
+              const difference = productionAvg - stagingAvg;
+              const percentDiff = ((difference / stagingAvg) * 100).toFixed(2);
 
-                  comparison[page] = {
-                    staging: {
-                      avgTotalTime: Math.round(stagingAvg),
-                      avgDomContentLoaded: Math.round(average(stagingMetrics.map(m => m.domContentLoaded))),
-                      avgLoadComplete: Math.round(average(stagingMetrics.map(m => m.loadComplete))),
-                      sampleSize: stagingMetrics.length
-                    },
-                    production: {
-                      avgTotalTime: Math.round(productionAvg),
-                      avgDomContentLoaded: Math.round(average(productionMetrics.map(m => m.domContentLoaded))),
-                      avgLoadComplete: Math.round(average(productionMetrics.map(m => m.loadComplete))),
-                      sampleSize: productionMetrics.length
-                    },
-                    difference: {
-                      totalTime: Math.round(difference),
-                      percentage: percentDiff
-                    }
-                  };
-                }
-              });
-
-              // Generate report
-              const report = {
-                timestamp: new Date().toISOString(),
-                summary: {
-                  stagingUrl: stagingUrl,
-                  productionUrl: productionUrl
+              comparison[page] = {
+                staging: {
+                  avgTotalTime: Math.round(stagingAvg),
+                  avgDomContentLoaded: Math.round(average(stagingMetrics.map(m => m.domContentLoaded))),
+                  avgLoadComplete: Math.round(average(stagingMetrics.map(m => m.loadComplete))),
+                  sampleSize: stagingMetrics.length
                 },
-                comparison
+                production: {
+                  avgTotalTime: Math.round(productionAvg),
+                  avgDomContentLoaded: Math.round(average(productionMetrics.map(m => m.domContentLoaded))),
+                  avgLoadComplete: Math.round(average(productionMetrics.map(m => m.loadComplete))),
+                  sampleSize: productionMetrics.length
+                },
+                difference: {
+                  totalTime: Math.round(difference),
+                  percentage: percentDiff
+                }
               };
-
-              // Write comparison report
-              cy.writeFile('cypress/results/performance-comparison.json', report);
-
-              // Log results to console
-              cy.log('**Performance Comparison Report**');
-              Object.keys(comparison).forEach(page => {
-                const data = comparison[page];
-                cy.log(`**${page.toUpperCase()}**`);
-                cy.log(`Staging: ${data.staging.avgTotalTime}ms (${data.staging.sampleSize} samples)`);
-                cy.log(`Production: ${data.production.avgTotalTime}ms (${data.production.sampleSize} samples)`);
-                cy.log(`Difference: ${data.difference.totalTime}ms (${data.difference.percentage}%)`);
-              });
-
-              // Generate markdown report
-              const markdown = generateMarkdownReport(report);
-              cy.writeFile('cypress/results/PERFORMANCE_REPORT.md', markdown);
-
-              // Generate Slack payload with blocks
-              const slackBlocks = generateSlackBlocks(report);
-              const slackPayload = {
-                text: `🚀 Performance Comparison Report - ISTQB`,
-                blocks: slackBlocks
-              };
-              cy.writeFile('cypress/results/SLACK_BLOCKS.json', slackPayload);
-            });
+            }
           });
+
+          // Generate report
+          const report = {
+            timestamp: new Date().toISOString(),
+            summary: {
+              stagingUrl: Cypress.env('stagingUrl'),
+              productionUrl: Cypress.env('productionUrl')
+            },
+            comparison
+          };
+
+          // Write comparison report
+          cy.writeFile('cypress/results/performance-comparison.json', report);
+
+          // Log results to console
+          cy.log('**Performance Comparison Report**');
+          Object.keys(comparison).forEach(page => {
+            const data = comparison[page];
+            cy.log(`**${page.toUpperCase()}**`);
+            cy.log(`Staging: ${data.staging.avgTotalTime}ms (${data.staging.sampleSize} samples)`);
+            cy.log(`Production: ${data.production.avgTotalTime}ms (${data.production.sampleSize} samples)`);
+            cy.log(`Difference: ${data.difference.totalTime}ms (${data.difference.percentage}%)`);
           });
+
+          // Generate markdown report
+          const markdown = generateMarkdownReport(report);
+          cy.writeFile('cypress/results/PERFORMANCE_REPORT.md', markdown);
+
+          // Generate Slack payload with blocks
+          const slackBlocks = generateSlackBlocks(report);
+          const slackPayload = {
+            text: `🚀 Performance Comparison Report - ISTQB`,
+            blocks: slackBlocks
+          };
+          cy.writeFile('cypress/results/SLACK_BLOCKS.json', slackPayload);
         });
       });
     });
