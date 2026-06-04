@@ -38,7 +38,10 @@ export function measurePageLoad(label = 'Page Load') {
  * @param {object} metrics - Performance metrics object
  */
 export function recordPerformance(environment, metrics) {
-  const filePath = `cypress/results/performance-${environment}.json`;
+  // Get run number from CI_RUN_ID (e.g., "26951887595-staging-1" -> 1)
+  const runId = Cypress.env('CI_RUN_ID') || 'local';
+  const runNumber = runId.split('-').pop();
+  const filePath = `cypress/results/performance-${environment}-run${runNumber}.json`;
   const historyPath = `.performance-history/performance-${environment}.json`;
 
   cy.task('log', `Recording performance for ${environment}`);

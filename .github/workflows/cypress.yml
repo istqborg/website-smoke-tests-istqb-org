@@ -40,8 +40,8 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4.4.3
         with:
-          name: staging-performance-results
-          path: cypress/results/performance-staging.json
+          name: staging-performance-results-run-${{ matrix.run }}
+          path: cypress/results/performance-staging-run*.json
           if-no-files-found: ignore
 
       - name: Upload Staging Screenshots
@@ -79,8 +79,8 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4.4.3
         with:
-          name: production-performance-results
-          path: cypress/results/performance-production.json
+          name: production-performance-results-run-${{ matrix.run }}
+          path: cypress/results/performance-production-run*.json
           if-no-files-found: ignore
 
       - name: Upload Production Screenshots
@@ -110,17 +110,31 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Download Staging Results
+      - name: Download All Staging Results
         uses: actions/download-artifact@v4.1.9
         with:
-          name: staging-performance-results
           path: cypress/results
+          pattern: staging-performance-results-*
 
-      - name: Download Production Results
+      - name: Download All Production Results
         uses: actions/download-artifact@v4.1.9
         with:
-          name: production-performance-results
           path: cypress/results
+          pattern: production-performance-results-*
+
+      - name: Consolidate Performance Results
+        run: |
+          # Consolidate all staging results into single files
+          find cypress/results -name "performance-staging-run*.json" -exec cat {} \; | jq -s 'add' > cypress/results/performance-staging-all.json
+          find cypress/results -name "performance-production-run*.json" -exec cat {} \; | jq -s 'add' > cypress/results/performance-production-all.json
+
+          # Move consolidated files to expected location
+          mv cypress/results/performance-staging-all.json cypress/results/performance-staging.json
+          mv cypress/results/performance-production-all.json cypress/results/performance-production.json
+
+          # Clean up run-specific files
+          rm -f cypress/results/*/performance-*-run*.json
+          echo "✅ Performance results consolidated"
 
       - name: Generate Performance Comparison
         run: npx cypress run --spec "cypress/e2e/performance-comparison.cy.js"
