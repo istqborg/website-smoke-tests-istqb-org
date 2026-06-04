@@ -71,6 +71,10 @@ describe('Performance Comparison Report', () => {
             // Generate markdown report
             const markdown = generateMarkdownReport(report);
             cy.writeFile('cypress/results/PERFORMANCE_REPORT.md', markdown);
+
+            // Generate Slack blocks
+            const slackBlocks = generateSlackBlocks(report);
+            cy.writeFile('cypress/results/SLACK_BLOCKS.json', slackBlocks);
           });
         });
       });
@@ -111,6 +115,82 @@ function generateMarkdownReport(report) {
   });
 
   return md;
+}
+
+function generateSlackBlocks(report) {
+  const blocks = [];
+
+  // Header
+  blocks.push({
+    type: 'header',
+    text: {
+      type: 'plain_text',
+      text: '📊 Performance Comparison Report'
+    }
+  });
+
+  // Generate section for each page
+  Object.keys(report.comparison).forEach(page => {
+    const data = report.comparison[page];
+    const pageName = page.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+    const isStagingFaster = data.difference.totalTime > 0;
+    const icon = Math.abs(parseFloat(data.difference.percentage)) < 10 ? '✅' : (isStagingFaster ? '⚡' : '🐢');
+
+    // Page header
+    blocks.push({
+      type: 'section',
+      text: {
+        type: 'mrkdwn',
+        text: `*${icon} ${pageName}*`
+      }
+    });
+
+    // Performance metrics table
+    let tableText = '```\n';
+    tableText += 'Metric                   Staging  Production  Difference\n';
+    tableText += '─────────────────────────────────────────────────────────\n';
+    tableText += `Total Load Time          ${String(data.staging.avgTotalTime).padEnd(7)} ${String(data.production.avgTotalTime).padEnd(10)} ${data.difference.totalTime}ms\n`;
+    tableText += `DOM Content Loaded       ${String(data.staging.avgDomContentLoaded).padEnd(7)} ${String(data.production.avgDomContentLoaded).padEnd(10)}\n`;
+    tableText += `Load Complete            ${String(data.staging.avgLoadComplete).padEnd(7)} ${String(data.production.avgLoadComplete).padEnd(10)}\n`;
+    tableText += `\nSample Size              ${data.staging.sampleSize} x          ${data.production.sampleSize} x\n`;
+    tableText += '```\n';
+
+    // Performance verdict
+    let verdict = '';
+    if (Math.abs(parseFloat(data.difference.percentage)) < 10) {
+      verdict = '✅ Performance is comparable (within 10% difference)';
+    } else if (data.difference.totalTime < 0) {
+      verdict = `🚀 Production is faster by ${Math.abs(data.difference.totalTime)}ms (${Math.abs(parseFloat(data.difference.percentage))}%)`;
+    } else {
+      verdict = `⚡ Staging is faster by ${data.difference.totalTime}ms (${data.difference.percentage}%)`;
+    }
+
+    blocks.push({
+      type: 'section',
+      text: {
+        type: 'mrkdwn',
+        text: `${tableText}${verdict}`
+      }
+    });
+
+    // Divider between pages
+    blocks.push({
+      type: 'divider'
+    });
+  });
+
+  // Footer with timestamp
+  blocks.push({
+    type: 'context',
+    elements: [
+      {
+        type: 'mrkdwn',
+        text: `Generated: ${new Date(report.timestamp).toLocaleString()}`
+      }
+    ]
+  });
+
+  return blocks;
 }
 
 // Made with Bob
