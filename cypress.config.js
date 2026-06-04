@@ -35,6 +35,18 @@ module.exports = {
           } catch (e) {
             return false;
           }
+        },
+        readHistoricalData(environment) {
+          try {
+            const historyPath = path.join(process.cwd(), `.performance-history/performance-${environment}.json`);
+            if (fs.existsSync(historyPath)) {
+              const data = fs.readFileSync(historyPath, 'utf8');
+              return JSON.parse(data);
+            }
+            return null;
+          } catch (e) {
+            return null;
+          }
         }
       });
 

@@ -39,7 +39,8 @@ export function measurePageLoad(label = 'Page Load') {
  */
 export function recordPerformance(environment, metrics) {
   const filePath = `cypress/results/performance-${environment}.json`;
-  
+  const historyPath = `.performance-history/performance-${environment}.json`;
+
   cy.task('log', `Recording performance for ${environment}`);
   cy.task('fileExists', filePath).then((exists) => {
     if (exists) {
@@ -51,6 +52,28 @@ export function recordPerformance(environment, metrics) {
     } else {
       // File doesn't exist, create new
       cy.writeFile(filePath, [metrics]);
+    }
+  });
+
+  // Also append to historical data
+  cy.task('fileExists', historyPath).then((historyExists) => {
+    if (historyExists) {
+      cy.readFile(historyPath, { log: false }).then((historyData) => {
+        const enhancedMetrics = {
+          ...metrics,
+          timestamp: new Date().toISOString(),
+          runId: Cypress.env('CI_RUN_ID') || 'local'
+        };
+        const updatedHistory = Array.isArray(historyData) ? [...historyData, enhancedMetrics] : [enhancedMetrics];
+        cy.writeFile(historyPath, updatedHistory);
+      });
+    } else {
+      const enhancedMetrics = {
+        ...metrics,
+        timestamp: new Date().toISOString(),
+        runId: Cypress.env('CI_RUN_ID') || 'local'
+      };
+      cy.writeFile(historyPath, [enhancedMetrics]);
     }
   });
 }
