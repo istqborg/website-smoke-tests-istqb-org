@@ -181,7 +181,7 @@ jobs:
 
       - name: Comment PR with Performance Report
         if: github.event_name == 'pull_request' && always()
-        uses: actions/github-script@v7.0.1
+        uses: actions/github-script@v9
         continue-on-error: true
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
@@ -209,7 +209,7 @@ jobs:
       - name: Commit Historical Performance Data
         if: always()
         continue-on-error: true
-        uses: actions/github-script@v7.0.1
+        uses: actions/github-script@v9
         with:
           script: |
             const fs = require('fs');
@@ -244,7 +244,7 @@ jobs:
       - name: Send Slack Notification
         if: always()
         continue-on-error: true
-        uses: slackapi/slack-github-action@v2.0.0
+        uses: slackapi/slack-github-action@v3
         with:
           webhook-type: incoming-webhook
           webhook: ${{ secrets.SLACK_WEBHOOK_URL }}
