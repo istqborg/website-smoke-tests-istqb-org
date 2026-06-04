@@ -33,17 +33,26 @@ describe('Performance Comparison Report', () => {
               comparison[page] = {
                 staging: {
                   avgTotalTime: Math.round(stagingAvg),
+                  avgLcp: avgMetrics(stagingMetrics, 'lcp'),
+                  avgFcp: avgMetrics(stagingMetrics, 'fcp'),
+                  avgTtfb: avgMetrics(stagingMetrics, 'ttfb'),
                   avgDomContentLoaded: avgMetrics(stagingMetrics, 'domContentLoaded'),
                   avgLoadComplete: avgMetrics(stagingMetrics, 'loadComplete'),
                   sampleSize: stagingMetrics.length,
                   now: {
                     avgTotalTime: avgMetrics(stagingNow, 'totalTime'),
+                    avgLcp: avgMetrics(stagingNow, 'lcp'),
+                    avgFcp: avgMetrics(stagingNow, 'fcp'),
+                    avgTtfb: avgMetrics(stagingNow, 'ttfb'),
                     avgDomContentLoaded: avgMetrics(stagingNow, 'domContentLoaded'),
                     avgLoadComplete: avgMetrics(stagingNow, 'loadComplete'),
                     sampleSize: stagingNow.length
                   },
                   historical: {
                     avgTotalTime: avgMetrics(stagingHist, 'totalTime'),
+                    avgLcp: avgMetrics(stagingHist, 'lcp'),
+                    avgFcp: avgMetrics(stagingHist, 'fcp'),
+                    avgTtfb: avgMetrics(stagingHist, 'ttfb'),
                     avgDomContentLoaded: avgMetrics(stagingHist, 'domContentLoaded'),
                     avgLoadComplete: avgMetrics(stagingHist, 'loadComplete'),
                     sampleSize: stagingHist.length
@@ -51,17 +60,25 @@ describe('Performance Comparison Report', () => {
                 },
                 production: {
                   avgTotalTime: Math.round(productionAvg),
+                  avgLcp: avgMetrics(productionMetrics, 'lcp'),
+                  avgTtfb: avgMetrics(productionMetrics, 'ttfb'),
                   avgDomContentLoaded: avgMetrics(productionMetrics, 'domContentLoaded'),
                   avgLoadComplete: avgMetrics(productionMetrics, 'loadComplete'),
                   sampleSize: productionMetrics.length,
                   now: {
                     avgTotalTime: avgMetrics(productionNow, 'totalTime'),
+                    avgLcp: avgMetrics(productionNow, 'lcp'),
+                    avgFcp: avgMetrics(productionNow, 'fcp'),
+                    avgTtfb: avgMetrics(productionNow, 'ttfb'),
                     avgDomContentLoaded: avgMetrics(productionNow, 'domContentLoaded'),
                     avgLoadComplete: avgMetrics(productionNow, 'loadComplete'),
                     sampleSize: productionNow.length
                   },
                   historical: {
                     avgTotalTime: avgMetrics(productionHist, 'totalTime'),
+                    avgLcp: avgMetrics(productionHist, 'lcp'),
+                    avgFcp: avgMetrics(productionHist, 'fcp'),
+                    avgTtfb: avgMetrics(productionHist, 'ttfb'),
                     avgDomContentLoaded: avgMetrics(productionHist, 'domContentLoaded'),
                     avgLoadComplete: avgMetrics(productionHist, 'loadComplete'),
                     sampleSize: productionHist.length
@@ -222,9 +239,18 @@ function generateSlackBlocks(report) {
     const pn = data.production.now;
     const ph = data.production.historical;
 
+    const lcpTag = (v) => v != null ? (v < 2500 ? '✅' : '⚠️') : '';
+
     let tableText = '```\n';
     tableText += 'Metric              Stg(now)  Stg(hist)  Prod(now)  Prod(hist)  Diff\n';
     tableText += '────────────────────────────────────────────────────────────────────\n';
+    const ttfbTag = (v) => v != null ? (v < 800 ? '✅' : '⚠️') : '';
+
+    const fcpTag = (v) => v != null ? (v < 1800 ? '✅' : '⚠️') : '';
+
+    tableText += `LCP (<2500ms)       ${fmt(sn.avgLcp).padEnd(9)} ${fmt(sh.avgLcp).padEnd(10)} ${fmt(pn.avgLcp).padEnd(10)} ${fmt(ph.avgLcp).padEnd(11)} ${lcpTag(pn.avgLcp)}\n`;
+    tableText += `FCP (<1800ms)       ${fmt(sn.avgFcp).padEnd(9)} ${fmt(sh.avgFcp).padEnd(10)} ${fmt(pn.avgFcp).padEnd(10)} ${fmt(ph.avgFcp).padEnd(11)} ${fcpTag(pn.avgFcp)}\n`;
+    tableText += `TTFB (<800ms)       ${fmt(sn.avgTtfb).padEnd(9)} ${fmt(sh.avgTtfb).padEnd(10)} ${fmt(pn.avgTtfb).padEnd(10)} ${fmt(ph.avgTtfb).padEnd(11)} ${ttfbTag(pn.avgTtfb)}\n`;
     tableText += `Total Load Time     ${fmt(sn.avgTotalTime).padEnd(9)} ${fmt(sh.avgTotalTime).padEnd(10)} ${fmt(pn.avgTotalTime).padEnd(10)} ${fmt(ph.avgTotalTime).padEnd(11)} ${data.difference.totalTime}ms\n`;
     tableText += `DOM Content Loaded  ${fmt(sn.avgDomContentLoaded).padEnd(9)} ${fmt(sh.avgDomContentLoaded).padEnd(10)} ${fmt(pn.avgDomContentLoaded).padEnd(10)} ${fmt(ph.avgDomContentLoaded).padEnd(11)}\n`;
     tableText += `Load Complete       ${fmt(sn.avgLoadComplete).padEnd(9)} ${fmt(sh.avgLoadComplete).padEnd(10)} ${fmt(pn.avgLoadComplete).padEnd(10)} ${fmt(ph.avgLoadComplete).padEnd(11)}\n`;

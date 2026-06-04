@@ -7,9 +7,19 @@ export function measurePageLoad(label = 'Page Load') {
   cy.window().then((win) => {
     const perfData = win.performance.timing;
     const navigationStart = perfData.navigationStart;
-    
+
+    const lcpEntries = win.performance.getEntriesByType('largest-contentful-paint');
+    const lcp = lcpEntries.length > 0 ? Math.round(lcpEntries[lcpEntries.length - 1].startTime) : null;
+    const fcpEntries = win.performance.getEntriesByType('paint');
+    const fcpEntry = fcpEntries.find(e => e.name === 'first-contentful-paint');
+    const fcp = fcpEntry ? Math.round(fcpEntry.startTime) : null;
+    const ttfb = Math.round(perfData.responseStart - perfData.navigationStart);
+
     const metrics = {
       label,
+      lcp,
+      fcp,
+      ttfb,
       dns: perfData.domainLookupEnd - perfData.domainLookupStart,
       tcp: perfData.connectEnd - perfData.connectStart,
       request: perfData.responseStart - perfData.requestStart,
@@ -20,13 +30,14 @@ export function measurePageLoad(label = 'Page Load') {
       totalTime: perfData.loadEventEnd - perfData.navigationStart
     };
 
-    // Log metrics to console
     cy.log(`**${label} Performance**`);
+    cy.log(`LCP: ${lcp != null ? lcp + 'ms' + (lcp < 2500 ? ' ✅' : ' ⚠️') : 'n/a'}`);
+    cy.log(`FCP: ${fcp != null ? fcp + 'ms' + (fcp < 1800 ? ' ✅' : ' ⚠️') : 'n/a'}`);
+    cy.log(`TTFB: ${ttfb}ms${ttfb < 800 ? ' ✅' : ' ⚠️'}`);
     cy.log(`Total Time: ${metrics.totalTime}ms`);
     cy.log(`DOM Content Loaded: ${metrics.domContentLoaded}ms`);
     cy.log(`Load Complete: ${metrics.loadComplete}ms`);
 
-    // Store in window for later retrieval
     win.__performanceMetrics = win.__performanceMetrics || [];
     win.__performanceMetrics.push(metrics);
   });
