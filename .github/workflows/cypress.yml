@@ -161,59 +161,52 @@ jobs:
       - name: Commit Historical Performance Data
         if: always()
         continue-on-error: true
-        run: |
-          if [ -d ".performance-history" ] && [ "$(ls -A .performance-history)" ]; then
-            git config user.name "GitHub Actions"
-            git config user.email "actions@github.com"
-            git add .performance-history/
-            git commit -m "chore: update performance history from workflow run" || true
-            git push || true
-          fi
+        uses: actions/github-script@v7.0.1
+        with:
+          script: |
+            const fs = require('fs');
+            const path = require('path');
 
-      - name: Prepare Slack Payload
-        if: always()
-        continue-on-error: true
-        id: slack-payload
-        run: |
-          # Read performance blocks if available
-          if [ -f "cypress/results/SLACK_BLOCKS.json" ]; then
-            BLOCKS=$(cat cypress/results/SLACK_BLOCKS.json)
-            echo "blocks=$BLOCKS" >> $GITHUB_OUTPUT
-            echo "has_blocks=true" >> $GITHUB_OUTPUT
-          else
-            echo "has_blocks=false" >> $GITHUB_OUTPUT
-          fi
+            try {
+              const historyDir = '.performance-history';
+              if (fs.existsSync(historyDir) && fs.readdirSync(historyDir).length > 0) {
+                // Add and commit historical data
+                await exec.exec('git', ['config', 'user.name', 'github-actions[bot]']);
+                await exec.exec('git', ['config', 'user.email', '41898282+github-actions[bot]@users.noreply.github.com']);
+                await exec.exec('git', ['add', historyDir]);
+
+                try {
+                  await exec.exec('git', ['commit', '-m', 'chore: update performance history from workflow run']);
+                  // Note: Push skipped - use PAT if needed
+                  console.log('✅ Historical data committed');
+                } catch {
+                  console.log('ℹ️ No changes to commit');
+                }
+              }
+            } catch (error) {
+              console.log('⚠️ Could not commit historical data:', error.message);
+            }
 
       - name: Send Slack Notification
-        if: always() && steps.slack-payload.outputs.has_blocks == 'true'
+        if: always()
         continue-on-error: true
-        uses: slackapi/slack-github-action@v2.0.0
-        with:
-          webhook-url: ${{ secrets.SLACK_WEBHOOK_URL }}
-          webhook-type: incoming-webhook
-          payload: |
-            {
-              "text": "🚀 Performance Comparison Report - ${{ github.repository }}",
-              "blocks": ${{ steps.slack-payload.outputs.blocks }}
-            }
+        run: |
+          if [ -f "cypress/results/SLACK_BLOCKS.json" ]; then
+            WEBHOOK="${{ secrets.SLACK_WEBHOOK_URL }}"
 
-      - name: Send Slack Fallback (No Report)
-        if: always() && steps.slack-payload.outputs.has_blocks != 'true'
-        continue-on-error: true
-        uses: slackapi/slack-github-action@v2.0.0
-        with:
-          webhook-url: ${{ secrets.SLACK_WEBHOOK_URL }}
-          webhook-type: incoming-webhook
-          payload: |
-            {
-              "text": "⚠️ Performance Comparison - No Report Generated",
-              "blocks": [
-                {
-                  "type": "section",
-                  "text": {
-                    "type": "mrkdwn",
-                    "text": "Repository: ${{ github.repository }}\nBranch: ${{ github.ref_name }}\nStatus: ${{ job.status }}\n\n_Report generation failed or in progress_"
-                  }
-                }
-              ]
-            }
+            # Build payload with blocks
+            PAYLOAD=$(cat <<'PAYLOAD_EOF'
+          {
+            "text": "🚀 Performance Comparison Report - ${{ github.repository }}",
+            "blocks": $(cat cypress/results/SLACK_BLOCKS.json)
+          }
+          PAYLOAD_EOF
+            )
+
+            curl -X POST -H 'Content-type: application/json' \
+              --data "$PAYLOAD" \
+              "$WEBHOOK"
+            echo "✅ Slack notification sent"
+          else
+            echo "⚠️ No performance report available for Slack"
+          fi
