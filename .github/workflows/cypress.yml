@@ -133,7 +133,6 @@ jobs:
           path: |
             cypress/results/performance-comparison.json
             cypress/results/PERFORMANCE_REPORT.md
-            cypress/results/SLACK_BLOCKS.json
           if-no-files-found: ignore
 
       - name: Comment PR with Performance Report
@@ -187,26 +186,3 @@ jobs:
               console.log('⚠️ Could not commit historical data:', error.message);
             }
 
-      - name: Send Slack Notification
-        if: always()
-        continue-on-error: true
-        run: |
-          if [ -f "cypress/results/SLACK_BLOCKS.json" ]; then
-            WEBHOOK="${{ secrets.SLACK_WEBHOOK_URL }}"
-
-            # Build payload with blocks
-            PAYLOAD=$(cat <<'PAYLOAD_EOF'
-          {
-            "text": "🚀 Performance Comparison Report - ${{ github.repository }}",
-            "blocks": $(cat cypress/results/SLACK_BLOCKS.json)
-          }
-          PAYLOAD_EOF
-            )
-
-            curl -X POST -H 'Content-type: application/json' \
-              --data "$PAYLOAD" \
-              "$WEBHOOK"
-            echo "✅ Slack notification sent"
-          else
-            echo "⚠️ No performance report available for Slack"
-          fi
