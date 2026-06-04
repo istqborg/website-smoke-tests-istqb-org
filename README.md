@@ -13,7 +13,7 @@ Cypress-based end-to-end smoke tests for ISTQB.org with performance comparison b
 
 ## Environments
 
-- **Staging**: `http://ec2-3-71-109-173.eu-central-1.compute.amazonaws.com`
+- **Staging**: `http://54.246.123.236`
 - **Production**: `https://istqb.org`
 
 ## Test Coverage
@@ -68,6 +68,9 @@ npm run cy:open:production
 ## Performance Metrics
 
 The tests measure the following metrics for each page:
+- **LCP (Largest Contentful Paint)**: How long the main content takes to load (target: <2500ms)
+- **FCP (First Contentful Paint)**: When the first text/image appears (target: <1800ms)
+- **TTFB (Time to First Byte)**: Server response speed (target: <800ms)
 - **Total Load Time**: Complete page load duration
 - **DOM Content Loaded**: Time until DOM is fully parsed
 - **Load Complete**: Time until all resources are loaded
@@ -82,21 +85,23 @@ After running tests, performance reports are generated in `cypress/results/`:
 - `performance-production.json` - Raw production metrics
 - `performance-comparison.json` - Comparison data
 - `PERFORMANCE_REPORT.md` - Human-readable markdown report
+- `SLACK_BLOCKS.json` - Slack Block Kit payload for notifications
+
+Historical data is stored in `.performance-history/` and committed back to the repo after each run (6-month retention).
 
 ### Sample Report Format
 
-```markdown
-# Performance Comparison Report
+```
+Metric              Stg(now)  Stg(hist)  Prod(now)  Prod(hist)  Diff
+────────────────────────────────────────────────────────────────────
+LCP (<2500ms)       1840      1920       1650       1700        ✅
+FCP (<1800ms)       950       1020       820        880         ✅
+TTFB (<800ms)       320       290        210        240         ✅
+Total Load Time     2132      1980       1776       1820        -356ms
+DOM Content Loaded  2132      1950       1244       1300
+Load Complete       2132      1980       1776       1820
 
-## Landing Page
-
-| Metric | Staging | Production | Difference |
-|--------|---------|------------|------------|
-| Total Load Time | 1250ms | 1180ms | -70ms (-5.6%) |
-| DOM Content Loaded | 890ms | 850ms | - |
-| Load Complete | 1200ms | 1150ms | - |
-
-✅ **Production is faster** by 70ms (5.6%)
+Sample Size         3 x       18 x       3 x        18 x
 ```
 
 ## GitHub Actions Workflow
@@ -104,7 +109,7 @@ After running tests, performance reports are generated in `cypress/results/`:
 The CI/CD pipeline runs automatically on:
 - Push to `main` branch
 - Pull requests
-- Daily at 8:00 AM UTC
+- Every 6 hours (00:00, 06:00, 12:00, 18:00 UTC)
 - Manual workflow dispatch
 
 ### Workflow Jobs
@@ -146,10 +151,13 @@ The workflow sends performance test results to Slack with:
 │   │   └── performance-comparison.cy.js      # Comparison report generator
 │   ├── support/
 │   │   ├── commands.js                       # Custom Cypress commands
-│   │   ├── e2e.js                           # Global configuration
+│   │   ├── e2e.js                           # Global config & PerformanceObserver setup
 │   │   ├── pdfUtils.js                      # PDF validation utilities
 │   │   └── performanceUtils.js              # Performance measurement utilities
 │   └── results/                             # Generated performance reports (gitignored)
+├── .performance-history/                    # Historical performance data (committed)
+├── scripts/
+│   └── cleanup-performance-history.js       # Prunes history older than 6 months
 ├── .github/
 │   └── workflows/
 │       └── cypress.yml                      # CI/CD pipeline
@@ -165,10 +173,11 @@ The workflow sends performance test results to Slack with:
 module.exports = {
   projectId: "ed878t",
   e2e: {
-    baseUrl: 'http://ec2-3-71-109-173.eu-central-1.compute.amazonaws.com',
+    baseUrl: 'https://istqb.org',
     chromeWebSecurity: false,  // Allow cross-origin navigation
+    allowCypressEnv: false,    // Use cy.env() instead of Cypress.env()
     env: {
-      stagingUrl: 'http://ec2-3-71-109-173.eu-central-1.compute.amazonaws.com',
+      stagingUrl: 'http://54.246.123.236/',
       productionUrl: 'https://istqb.org'
     }
   }
@@ -193,7 +202,7 @@ The tests automatically suppress known third-party errors:
 
 ## Requirements
 
-- Node.js 20+
+- Node.js 24+
 - Cypress 15.13.0+
 
 ## Troubleshooting
