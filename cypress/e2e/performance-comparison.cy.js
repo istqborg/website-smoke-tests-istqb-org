@@ -72,9 +72,13 @@ describe('Performance Comparison Report', () => {
             const markdown = generateMarkdownReport(report);
             cy.writeFile('cypress/results/PERFORMANCE_REPORT.md', markdown);
 
-            // Generate Slack blocks
+            // Generate Slack payload with blocks
             const slackBlocks = generateSlackBlocks(report);
-            cy.writeFile('cypress/results/SLACK_BLOCKS.json', slackBlocks);
+            const slackPayload = {
+              text: `🚀 Performance Comparison Report - ISTQB`,
+              blocks: slackBlocks
+            };
+            cy.writeFile('cypress/results/SLACK_BLOCKS.json', slackPayload);
           });
         });
       });

@@ -190,23 +190,7 @@ jobs:
       - name: Send Slack Notification
         if: always()
         continue-on-error: true
-        run: |
-          if [ -f "cypress/results/SLACK_BLOCKS.json" ]; then
-            WEBHOOK="${{ secrets.SLACK_WEBHOOK_URL }}"
-
-            # Build payload with blocks
-            PAYLOAD=$(cat <<'PAYLOAD_EOF'
-          {
-            "text": "🚀 Performance Comparison Report - ${{ github.repository }}",
-            "blocks": $(cat cypress/results/SLACK_BLOCKS.json)
-          }
-          PAYLOAD_EOF
-            )
-
-            curl -X POST -H 'Content-type: application/json' \
-              --data "$PAYLOAD" \
-              "$WEBHOOK"
-            echo "✅ Slack notification sent"
-          else
-            echo "⚠️ No performance report available for Slack"
-          fi
+        uses: slackapi/slack-github-action@v2.0.0
+        with:
+          webhook: ${{ secrets.SLACK_WEBHOOK_URL }}
+          payload-file-path: 'cypress/results/SLACK_BLOCKS.json'
