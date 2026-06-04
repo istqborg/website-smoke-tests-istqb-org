@@ -172,6 +172,11 @@ jobs:
               console.log('Performance report is available in artifacts');
             }
 
+      - name: Cleanup Old Performance History
+        if: always()
+        continue-on-error: true
+        run: node scripts/cleanup-performance-history.js
+
       - name: Commit Historical Performance Data
         if: always()
         continue-on-error: true
@@ -183,22 +188,28 @@ jobs:
 
             try {
               const historyDir = '.performance-history';
-              if (fs.existsSync(historyDir) && fs.readdirSync(historyDir).length > 0) {
-                // Add and commit historical data
-                await exec.exec('git', ['config', 'user.name', 'github-actions[bot]']);
-                await exec.exec('git', ['config', 'user.email', '41898282+github-actions[bot]@users.noreply.github.com']);
-                await exec.exec('git', ['add', historyDir]);
+              const archiveDir = '.performance-history-archive';
 
-                try {
-                  await exec.exec('git', ['commit', '-m', 'chore: update performance history from workflow run']);
-                  // Note: Push skipped - use PAT if needed
-                  console.log('✅ Historical data committed');
-                } catch {
-                  console.log('ℹ️ No changes to commit');
-                }
+              // Add both history and archive directories
+              await exec.exec('git', ['config', 'user.name', 'github-actions[bot]']);
+              await exec.exec('git', ['config', 'user.email', '41898282+github-actions[bot]@users.noreply.github.com']);
+
+              if (fs.existsSync(historyDir) && fs.readdirSync(historyDir).length > 0) {
+                await exec.exec('git', ['add', historyDir]);
+              }
+
+              if (fs.existsSync(archiveDir) && fs.readdirSync(archiveDir).length > 0) {
+                await exec.exec('git', ['add', archiveDir]);
+              }
+
+              try {
+                await exec.exec('git', ['commit', '-m', 'chore: update performance history and archives']);
+                console.log('✅ Performance data committed');
+              } catch {
+                console.log('ℹ️ No changes to commit');
               }
             } catch (error) {
-              console.log('⚠️ Could not commit historical data:', error.message);
+              console.log('⚠️ Could not commit performance data:', error.message);
             }
 
       - name: Send Slack Notification
