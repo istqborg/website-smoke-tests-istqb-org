@@ -81,6 +81,7 @@ describe('Performance Comparison Report', () => {
             };
             cy.writeFile('cypress/results/SLACK_BLOCKS.json', slackPayload);
           });
+          });
         });
       });
     });
@@ -231,4 +232,3 @@ function generateSlackBlocks(report) {
 
   return blocks;
 }
-
