@@ -16,6 +16,34 @@
 // Import commands.js using ES2015 syntax:
 import './commands'
 
+// Set up PerformanceObserver before each page load to capture LCP and FCP correctly.
+// getEntriesByType() returns startTime:0 when called after load; observers must be
+// registered before rendering starts to get accurate values.
+Cypress.on('window:before:load', (win) => {
+  win.__vitals = { lcp: null, fcp: null };
+
+  try {
+    const lcpObserver = new win.PerformanceObserver((list) => {
+      const entries = list.getEntries();
+      if (entries.length > 0) {
+        win.__vitals.lcp = Math.round(entries[entries.length - 1].startTime);
+      }
+    });
+    lcpObserver.observe({ type: 'largest-contentful-paint', buffered: true });
+  } catch (_) {}
+
+  try {
+    const fcpObserver = new win.PerformanceObserver((list) => {
+      for (const entry of list.getEntries()) {
+        if (entry.name === 'first-contentful-paint') {
+          win.__vitals.fcp = Math.round(entry.startTime);
+        }
+      }
+    });
+    fcpObserver.observe({ type: 'paint', buffered: true });
+  } catch (_) {}
+});
+
 Cypress.on('uncaught:exception', (err) => {
   const msg = String(err?.message || '').toLowerCase();
 

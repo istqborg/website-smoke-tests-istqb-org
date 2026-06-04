@@ -8,11 +8,8 @@ export function measurePageLoad(label = 'Page Load') {
     const perfData = win.performance.timing;
     const navigationStart = perfData.navigationStart;
 
-    const lcpEntries = win.performance.getEntriesByType('largest-contentful-paint');
-    const lcp = lcpEntries.length > 0 ? Math.round(lcpEntries[lcpEntries.length - 1].startTime) : null;
-    const fcpEntries = win.performance.getEntriesByType('paint');
-    const fcpEntry = fcpEntries.find(e => e.name === 'first-contentful-paint');
-    const fcp = fcpEntry ? Math.round(fcpEntry.startTime) : null;
+    const lcp = win.__vitals?.lcp ?? null;
+    const fcp = win.__vitals?.fcp ?? null;
     const ttfb = Math.round(perfData.responseStart - perfData.navigationStart);
 
     const metrics = {
