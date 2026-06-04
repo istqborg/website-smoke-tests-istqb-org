@@ -40,8 +40,11 @@ describe('Staging Environment - istqb.org health check', () => {
     cy.contains('Certified Tester Foundation Level (CTFL) v4.0');
 
     // Open the CTFL details page
-    cy.contains('h4 a', 'Read more').first().click();
-    cy.url().should('include', '/certified-tester-foundation-level');
+    cy.contains('a', 'Read more').first().then(($link) => {
+      const url = $link.attr('href');
+      cy.visit(url);
+    });
+    cy.url().should('include', '/certified-tester-foundation-level-ctfl-v4-0');
 
     // Measure CTFL details page load
     measurePageLoad('Staging - CTFL Details Page');
