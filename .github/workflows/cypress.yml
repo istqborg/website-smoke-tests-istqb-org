@@ -103,7 +103,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
         with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Setup Node
         uses: actions/setup-node@v6
@@ -189,7 +189,7 @@ jobs:
         uses: actions/github-script@v9
         continue-on-error: true
         with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             const fs = require('fs');
             try {
