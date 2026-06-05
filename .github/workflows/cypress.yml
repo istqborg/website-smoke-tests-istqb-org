@@ -136,7 +136,11 @@ jobs:
           rm -f cypress/results/*/performance-*-run*.json
           echo "✅ Performance results consolidated"
 
+      - name: Generate Performance Comparison
+        run: npx cypress run --spec "cypress/e2e/performance-comparison.cy.js"
+
       - name: Append Current Run to Performance History
+        if: always()
         run: |
           mkdir -p .performance-history
           TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
@@ -164,9 +168,6 @@ jobs:
 
             echo "✅ Appended $(jq length /tmp/current-enhanced.json) measurements to ${ENV} history"
           done
-
-      - name: Generate Performance Comparison
-        run: npx cypress run --spec "cypress/e2e/performance-comparison.cy.js"
 
       - name: Upload Performance Report
         if: always()
