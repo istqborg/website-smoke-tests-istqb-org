@@ -234,7 +234,8 @@ jobs:
 
               try {
                 await exec.exec('git', ['commit', '-m', 'chore: update performance history and archives']);
-                console.log('✅ Performance data committed');
+                await exec.exec('git', ['push']);
+                console.log('✅ Performance data committed and pushed');
               } catch {
                 console.log('ℹ️ No changes to commit');
               }
