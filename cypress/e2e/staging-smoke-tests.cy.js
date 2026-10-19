@@ -40,7 +40,7 @@ describe('Staging Environment - istqb.org health check', () => {
     cy.contains('Certified Tester Foundation Level (CTFL) v4.0');
 
     // Open the CTFL details page
-    cy.contains('a', 'Read more').first().then(($link) => {
+    cy.contains('a', 'Read more >').first().then(($link) => {
       const href = $link.attr('href');
       if (href.includes('istqb.org')) {
         const stagingUrl = Cypress.env('stagingUrl');

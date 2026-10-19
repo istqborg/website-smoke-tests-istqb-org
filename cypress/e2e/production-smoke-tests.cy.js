@@ -40,7 +40,7 @@ describe('Production Environment - istqb.org health check', () => {
     cy.contains('Certified Tester Foundation Level (CTFL) v4.0');
 
     // Open the CTFL details page
-    cy.contains('a', 'Read more').first().then(($link) => {
+    cy.contains('a', 'Read more >').first().then(($link) => {
       const url = $link.attr('href');
       cy.visit(url);
     });
