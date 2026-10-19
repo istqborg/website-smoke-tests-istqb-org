@@ -7,7 +7,7 @@ module.exports = {
     allowCypressEnv: false,
     env: {
       // Define multiple base URLs for testing
-      stagingUrl: 'http://54.246.123.236/',
+      stagingUrl: 'https://istqbdev.cloud',
       productionUrl: 'https://istqb.org'
     },
     setupNodeEvents(on, config) {
