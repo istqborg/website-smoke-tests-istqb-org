@@ -23,7 +23,7 @@ describe('Production Environment - istqb.org health check', () => {
 
     // Open the landing page
     cy.scrollTo('bottom');
-    cy.contains('Improve & Certify your skills');
+    cy.contains('leading global certification scheme');
 
     // Open certifications page
     cy.contains('a', 'Certifications', { matchCase: false }).click();

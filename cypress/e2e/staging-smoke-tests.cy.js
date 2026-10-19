@@ -23,7 +23,7 @@ describe('Staging Environment - istqb.org health check', () => {
 
     // Open the landing page
     cy.scrollTo('bottom');
-    cy.contains('Improve & Certify your skills');
+    cy.contains('leading global certification scheme');
 
     // Open certifications page
     cy.contains('a', 'Certifications', { matchCase: false }).click();
@@ -43,10 +43,9 @@ describe('Staging Environment - istqb.org health check', () => {
     cy.contains('a', 'Read more').first().then(($link) => {
       const href = $link.attr('href');
       if (href.includes('istqb.org')) {
-        cy.env(['stagingUrl']).then(({ stagingUrl }) => {
+        const stagingUrl = Cypress.env('stagingUrl');
           const url = href.replace('https://istqb.org', stagingUrl).replace(/\/$/, '');
           cy.visit(url);
-        });
       } else {
         cy.visit(href);
       }
