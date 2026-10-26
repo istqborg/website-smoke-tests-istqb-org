@@ -150,5 +150,17 @@ describe('Production Environment - istqb.org health check', () => {
           });
       });
   });
-});
 
+  it('find a partner page loads more than 200 partner tiles', () => {
+    // Open the find a partner page
+    cy.visit('/partner-program/find-a-partner/');
+    cy.url().should('include', '/partner-program/find-a-partner/');
+
+    // Partner tiles are rendered client-side, wait until the list is populated
+    // (.sds-card is the current production markup, .partner-card the new one on staging)
+    cy.get('.sds-card, .partner-card', { timeout: 30000 })
+      .should('have.length.greaterThan', 200)
+      .first()
+      .should('be.visible');
+  });
+});
