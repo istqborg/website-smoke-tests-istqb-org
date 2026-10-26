@@ -80,5 +80,24 @@ describe('Staging Environment - istqb.org health check', () => {
       .scrollIntoView()
       .should('be.visible');
   });
+
+  it('training providers search finds AmberTeam Testing with its e-mail', () => {
+    // Open the training providers page and wait for the (large) providers list to load
+    cy.intercept('GET', '**/wp-json/istqb/v1/training-providers*').as('providers');
+    cy.visit('/training-providers/');
+    cy.url().should('include', '/training-providers/');
+    cy.wait('@providers', { responseTimeout: 30000 });
+
+    // Pick the provider from the autocomplete (the form is duplicated, use the visible one)
+    cy.get('input[placeholder="Training providers..."]').filter(':visible').type('AmberTeam');
+    cy.contains('div.cursor-pointer', /^AmberTeam Testing Sp\.z\.o\.o\.$/).click();
+    cy.contains('button:visible', 'Search').click();
+
+    // Verify the provider row shows the expected contact e-mail
+    cy.contains('tr', 'AmberTeam Testing Sp.z.o.o.')
+      .scrollIntoView()
+      .should('be.visible')
+      .and('contain', 'akademia@amberteam.pl');
+  });
 });
 
