@@ -187,4 +187,26 @@ describe('Production Environment - istqb.org health check', () => {
       checkPdfDownloadable(currentUrl, { hrefPattern: pdfFile });
     });
   });
+
+  it('recognition program lists more than 1 institution and more than 5 individuals', () => {
+    // Open the recognition program page
+    cy.visit('/recognition-program/');
+    cy.url().should('include', '/recognition-program/');
+
+    // Verify the institutions board has more than 1 recognized institution
+    cy.get('#board-institutions')
+      .scrollIntoView()
+      .should('be.visible')
+      .and('contain', 'Institutions')
+      .find('.partner-card')
+      .should('have.length.greaterThan', 1);
+
+    // Verify the individuals board (grouped by member board) has more than 5 recognized individuals
+    cy.get('#board-individuals')
+      .scrollIntoView()
+      .should('be.visible')
+      .and('contain', 'Individuals')
+      .find('.partner-card')
+      .should('have.length.greaterThan', 5);
+  });
 });
