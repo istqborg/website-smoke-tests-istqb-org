@@ -163,4 +163,28 @@ describe('Production Environment - istqb.org health check', () => {
       .first()
       .should('be.visible');
   });
+
+  it('academia papers page offers Boundary Value Analysis white paper download', () => {
+    const pdfFile = 'Boundary-Value-Analysis-white-paper.pdf';
+
+    // Open the academia papers and publications page
+    cy.visit('/academia-papers-and-publications/');
+    cy.url().should('include', '/academia-papers-and-publications/');
+
+    // Find the white paper title (the layout is duplicated, use the visible one) and its download button
+    cy.contains('strong', 'Boundary Value Analysis According to the ISTQB® Foundation Level Syllabus')
+      .filter(':visible')
+      .first()
+      .scrollIntoView()
+      .closest('.col-inner')
+      .contains('a', 'Download')
+      .should('be.visible')
+      .and('have.attr', 'href')
+      .and('include', pdfFile);
+
+    // Verify that the white paper PDF is downloadable and structurally valid
+    cy.url().then((currentUrl) => {
+      checkPdfDownloadable(currentUrl, { hrefPattern: pdfFile });
+    });
+  });
 });
