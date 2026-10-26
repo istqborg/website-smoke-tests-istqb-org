@@ -30,12 +30,16 @@ The staging and production specs run the same scenarios:
 3. **Training Providers**: searching for "AmberTeam Testing Sp.z.o.o." shows the provider with e-mail `akademia@amberteam.pl`
 4. **Exam Providers**: searching for "Polish Quality Board" and opening "More Information" shows "Web Site: https://pqb.org.pl"
 5. **Personas**: the "ISTQB® Personas" section on the landing page opens Anya (Test Manager) at `/persona-anya/`, which shows her image, her description and the "Empowering Team Members" label button below it
+6. **Find a Partner**: `/partner-program/find-a-partner/` loads more than 200 partner tiles
+7. **Academia Papers**: `/academia-papers-and-publications/` offers the "Boundary Value Analysis According to the ISTQB® Foundation Level Syllabus" white paper, whose PDF is downloadable and valid (HTTP 200, `application/pdf`, `%PDF` header, >10 KB)
+8. **Recognition Program**: `/recognition-program/` lists more than 1 institution (`#board-institutions`) and more than 5 individuals (`#board-individuals`)
+9. **Help Center**: searching for "How do I get a copy of my certificate (because I have lost it)?" on `/help/` suggests the "ISTQB® Certificates" page (`/help/certifications-2/`), where the question expands to the answer "ISTQB® does NOT issue certificates. Please contact the Member Board or Exam Provider..."
 
-Only scenario 1 records performance metrics; scenarios 2-5 are functional checks.
+Only scenario 1 records performance metrics; scenarios 2-9 are functional checks.
 
 ### Known Issues
 
-- **Exam Providers fails on production**: the inline `istqb-dedupe-exam-providers` script on `https://istqb.org/exam-providers/` throws `SyntaxError: Invalid or unexpected token`, because WordPress encodes `&&` as `&#038;&#038;`. The test is intentionally strict and will pass once the script is fixed on the site.
+- **Recognition Program fails on staging**: `https://istqbdev.cloud/recognition-program/` still uses the old layout without the `#board-institutions` / `#board-individuals` sections, so scenario 8 fails there. Production already has the new layout and passes. The test is intentionally strict and will pass on staging once the page is synced with production.
 
 ## Installation
 
