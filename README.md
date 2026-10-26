@@ -13,17 +13,29 @@ Cypress-based end-to-end smoke tests for ISTQB.org with performance comparison b
 
 ## Environments
 
-- **Staging**: `http://54.246.123.236`
+- **Staging**: `https://istqbdev.cloud`
 - **Production**: `https://istqb.org`
 
 ## Test Coverage
 
-The smoke tests validate:
-1. Landing page accessibility and content
-2. Navigation to Certifications page
-3. CTFL (Certified Tester Foundation Level) v4.0 details page
-4. PDF syllabus download functionality and validation
-5. Page load performance metrics
+The staging and production specs run the same scenarios:
+
+1. **Certification journey with performance measurement**
+   - Landing page loads and the "Work With Us And Get Involved" section is reached after scrolling down
+   - Navigation to the Certifications page (CTFL v4.0 listed)
+   - CTFL (Certified Tester Foundation Level) v4.0 details page
+   - PDF syllabus download and validation (HTTP 200, `application/pdf`, `%PDF` header, >10 KB)
+   - Page load performance metrics for the landing, Certifications and CTFL pages
+2. **Member Boards**: `/member-boards/` lists "Polish Quality Board" (scrolled into view)
+3. **Training Providers**: searching for "AmberTeam Testing Sp.z.o.o." shows the provider with e-mail `akademia@amberteam.pl`
+4. **Exam Providers**: searching for "Polish Quality Board" and opening "More Information" shows "Web Site: https://pqb.org.pl"
+5. **Personas**: the "ISTQB® Personas" section on the landing page opens Anya (Test Manager) at `/persona-anya/`, which shows her image, her description and the "Empowering Team Members" label button below it
+
+Only scenario 1 records performance metrics; scenarios 2-5 are functional checks.
+
+### Known Issues
+
+- **Exam Providers fails on production**: the inline `istqb-dedupe-exam-providers` script on `https://istqb.org/exam-providers/` throws `SyntaxError: Invalid or unexpected token`, because WordPress encodes `&&` as `&#038;&#038;`. The test is intentionally strict and will pass once the script is fixed on the site.
 
 ## Installation
 
@@ -175,9 +187,10 @@ module.exports = {
   e2e: {
     baseUrl: 'https://istqb.org',
     chromeWebSecurity: false,  // Allow cross-origin navigation
+    pageLoadTimeout: 40000,
     allowCypressEnv: false,    // Use cy.env() instead of Cypress.env()
     env: {
-      stagingUrl: 'http://54.246.123.236/',
+      stagingUrl: 'https://istqbdev.cloud',
       productionUrl: 'https://istqb.org'
     }
   }
@@ -200,6 +213,10 @@ The tests automatically suppress known third-party errors:
 - Google Analytics postMessage errors
 - Network errors from external widgets
 
+Any other uncaught JavaScript error on a page fails the test.
+
+Pages that render their content client-side (Training Providers, Exam Providers) are tested by waiting for their API responses (`/wp-json/istqb/v1/training-providers`, `/wp-json/istqb/v1/exam-providers`) with a 30 s timeout, as the providers list is large.
+
 ## Requirements
 
 - Node.js 24+
@@ -216,6 +233,12 @@ Run staging and production tests before running the comparison:
 npm run test:staging
 npm run test:production
 npm run test:compare
+```
+
+### Local Runs Modify Performance History
+Running the staging or production specs locally appends metrics to `.performance-history/`. Discard them before committing, so local timings don't skew the CI averages:
+```bash
+git restore .performance-history/
 ```
 
 ### GitHub Actions Failures
