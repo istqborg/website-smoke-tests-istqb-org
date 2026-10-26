@@ -99,5 +99,29 @@ describe('Staging Environment - istqb.org health check', () => {
       .should('be.visible')
       .and('contain', 'akademia@amberteam.pl');
   });
+
+  it('exam providers search shows Polish Quality Board website in more information', () => {
+    // Open the exam providers page and wait for the providers list to load
+    cy.intercept('GET', '**/wp-json/istqb/v1/exam-providers*').as('examProviders');
+    cy.visit('/exam-providers/');
+    cy.url().should('include', '/exam-providers/');
+    cy.wait('@examProviders', { responseTimeout: 30000 });
+
+    // Pick the provider from the autocomplete and search
+    cy.get('input[placeholder="Search for exam provider..."]').filter(':visible').type('Polish');
+    cy.contains('div.cursor-pointer', /^Polish Quality Board$/).click();
+    cy.contains('button:visible', 'Search').click();
+
+    // Open the provider details
+    cy.contains('tr', 'Polish Quality Board')
+      .find('button[title="More Information"]')
+      .click();
+
+    // Verify the details show the provider website
+    cy.contains('p', /Web Site:\s*https:\/\/pqb\.org\.pl/)
+      .should('be.visible')
+      .find('a')
+      .should('have.attr', 'href', 'https://pqb.org.pl');
+  });
 });
 
