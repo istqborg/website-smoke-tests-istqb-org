@@ -60,5 +60,19 @@ describe('Production Environment - istqb.org health check', () => {
       });
     });
   });
+
+  it('member boards page lists Polish Quality Board', () => {
+    // Open the member boards page
+    cy.visit('/member-boards/');
+    cy.url().should('include', '/member-boards/');
+
+    // Board cards are rendered client-side, wait until the list is populated
+    cy.get('h3').should('have.length.greaterThan', 10);
+
+    // Scroll down through the list to the Polish board
+    cy.contains('h3', 'Polish Quality Board')
+      .scrollIntoView()
+      .should('be.visible');
+  });
 });
 
