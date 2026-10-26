@@ -215,4 +215,34 @@ describe('Staging Environment - istqb.org health check', () => {
       .find('.partner-card')
       .should('have.length.greaterThan', 5);
   });
+
+  it('help center search leads to lost certificate answer on ISTQB Certificates page', () => {
+    const question = 'How do I get a copy of my certificate (because I have lost it)?';
+
+    // Open the help center and type the question into the Help Center search (the visible one)
+    cy.visit('/help/');
+    cy.url().should('include', '/help/');
+    cy.get('input[type="search"][name="s"]').filter(':visible').first().type(question);
+
+    // Pick the suggested ISTQB Certificates page from the live search results
+    cy.contains('.autocomplete-suggestion', 'ISTQB® Certificates', { timeout: 15000 })
+      .should('be.visible')
+      .click();
+    cy.url().should('include', '/help/certifications-2/');
+
+    // Expand the question and verify the answer (normalize &nbsp; and line breaks)
+    cy.contains('.accordion-title', question).click();
+    cy.contains('.accordion-title', question)
+      .closest('.accordion-item')
+      .find('.accordion-inner')
+      .should('be.visible')
+      .invoke('text')
+      .then((text) => {
+        const answer = text.replace(/\s+/g, ' ').trim();
+        expect(answer).to.include('ISTQB® does NOT issue certificates.');
+        expect(answer).to.include(
+          'Please contact the Member Board or Exam Provider who issued your original certificate for a copy (fees may apply).'
+        );
+      });
+  });
 });
