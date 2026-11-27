@@ -2,6 +2,13 @@
 
 Cypress-based end-to-end smoke tests for ISTQB.org with performance comparison between staging and production environments.
 
+> [!WARNING]
+> **This repository is intentionally public. Do not change its visibility to private.**
+>
+> - It is a fork of a public repository, and GitHub does not allow forks of public repositories to be made private.
+> - Public repositories get GitHub-hosted Actions runners for free. In a private repository every run would be billed against the `istqborg` organization's shared Actions minutes. Each run takes about 13 billable minutes, and the schedule runs every 6 hours, so this repository alone would use about 1,500+ minutes per month. Using up that pool could stop Actions in all private `istqborg` repositories.
+> - Because the repository is public, never commit credentials, tokens or other confidential data. Keep them in GitHub Actions secrets, such as `CYPRESS_RECORD_KEY` and `SLACK_WEBHOOK_URL`.
+
 ## Features
 
 - ✅ Automated smoke tests for critical user journeys
